@@ -2,7 +2,7 @@
 {
     internal sealed class CommaOperation : ControlOperation
     {
-        public override string Code { get { return ","; } }
+        public override string Code => ",";
 
         public CommaOperation() { }
 
@@ -16,7 +16,7 @@
             };
 
             if (operatorStack.Count == 0)
-                throw new InvalidExpressionStringException("Comma operation(,) is only available in closed opration.");
+                throw new InvalidExpressionStringException("Comma operation(,) is only available in closed operation.");
 
             var expressionStack = BuildingContext.Current.ExpressionStack;
 

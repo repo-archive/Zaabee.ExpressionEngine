@@ -12,18 +12,13 @@ namespace Zaabee.ExpressionEngine
             stack.Clear();
         }
 
-        public int Count
-        {
-            get
-            {
-                return stack.Count;
-            }
-        }
+        public int Count => stack.Count;
 
         public ExpressionElement Peek()
         {
             return stack.Peek();
         }
+
         public ExpressionElement Pop()
         {
             return stack.Pop();
@@ -32,11 +27,11 @@ namespace Zaabee.ExpressionEngine
 
         public void Push(Operation frontOperation, Expression expression, Operation backOperation = null)
         {
-            ExpressionElement element = new ExpressionElement
+            var element = new ExpressionElement
             {
                 FrontOperation = frontOperation,
                 Expression = expression,
-                BackOperation = backOperation 
+                BackOperation = backOperation
             };
 
             stack.Push(element);
@@ -53,7 +48,8 @@ namespace Zaabee.ExpressionEngine
                     return stack.Pop().Expression;
                 }
             }
-            throw new InvalidExpressionStringException(string.Format("{0} has no enough back operands.", frontOperation.GetType().Name));
+
+            throw new InvalidExpressionStringException($"{frontOperation.GetType().Name} has no enough back operands.");
         }
 
         public Expression PopByBack(Operation backOperation)
@@ -67,10 +63,12 @@ namespace Zaabee.ExpressionEngine
                     return stack.Pop().Expression;
                 }
 
-                if(expression.FrontOperation == backOperation)
-                    throw new InvalidExpressionStringException(string.Format("{0} has too back operands.", backOperation.GetType().Name));
+                if (expression.FrontOperation == backOperation)
+                    throw new InvalidExpressionStringException(
+                        $"{backOperation.GetType().Name} has too back operands.");
             }
-            throw new InvalidExpressionStringException(string.Format("{0} has no enough front operands.", backOperation.GetType().Name));
+
+            throw new InvalidExpressionStringException($"{backOperation.GetType().Name} has no enough front operands.");
         }
     }
 

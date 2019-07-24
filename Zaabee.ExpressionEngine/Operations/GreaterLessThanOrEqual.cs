@@ -4,11 +4,13 @@ namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class GreaterThanOperation : BinaryOperation
     {
-        public override string Code { get { return ">"; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => ">";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public GreaterThanOperation() : base(Expression.GreaterThan) { }
+        public GreaterThanOperation() : base(Expression.GreaterThan)
+        {
+        }
 
         private static Operation Build()
         {
@@ -18,11 +20,13 @@ namespace Zaabee.ExpressionEngine.Operations
 
     internal sealed class GreaterThanOrEqualOperation : BinaryOperation
     {
-        public override string Code { get { return ">="; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => ">=";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public GreaterThanOrEqualOperation() : base(Expression.GreaterThanOrEqual) { }
+        public GreaterThanOrEqualOperation() : base(Expression.GreaterThanOrEqual)
+        {
+        }
 
         private static Operation Build()
         {
@@ -32,11 +36,13 @@ namespace Zaabee.ExpressionEngine.Operations
 
     internal sealed class LessThanOperation : BinaryOperation
     {
-        public override string Code { get { return "<"; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => "<";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public LessThanOperation() : base(Expression.LessThan) { }
+        public LessThanOperation() : base(Expression.LessThan)
+        {
+        }
 
         private static Operation Build()
         {
@@ -46,11 +52,13 @@ namespace Zaabee.ExpressionEngine.Operations
 
     internal sealed class LessThanOrEqualOperation : BinaryOperation
     {
-        public override string Code { get { return "<="; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => "<=";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public LessThanOrEqualOperation() : base(Expression.LessThanOrEqual) { }
+        public LessThanOrEqualOperation() : base(Expression.LessThanOrEqual)
+        {
+        }
 
         private static Operation Build()
         {

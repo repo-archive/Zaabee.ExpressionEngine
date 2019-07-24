@@ -5,20 +5,13 @@ namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class ParenthesesOperation : CloseOperation
     {
-        public override string Code
-        {
-            get { return "("; }
-        }
+        public override string Code => "(";
 
-        public override string CloseCode
-        {
-            get
-            {
-                return ")";
-            }
-        }
+        public override string CloseCode => ")";
 
-        public ParenthesesOperation() { }
+        public ParenthesesOperation()
+        {
+        }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
@@ -31,6 +24,7 @@ namespace Zaabee.ExpressionEngine.Operations
             {
                 throw new InvalidExpressionStringException("Invalid () body.");
             }
+
             var result = expressionStack.PopByFront(this);
 
             if (expressionStack.Count > 0)
@@ -43,8 +37,9 @@ namespace Zaabee.ExpressionEngine.Operations
                 }
             }
 
-            return new Expression[] { result };
+            return new[] {result};
         }
+
         private static Operation Build()
         {
             var reader = BuildingContext.Current.ExpressionReader;
@@ -55,20 +50,23 @@ namespace Zaabee.ExpressionEngine.Operations
                 return new ParenthesesOperation();
             }
 
-            if(reader.Peek() == ')')
+            if (reader.Peek() == ')')
             {
                 reader.Read();
                 return new ParenthesesClosedOperation();
             }
+
             return null;
         }
     }
 
     internal sealed class ParenthesesClosedOperation : ControlOperation
     {
-        public override string Code { get { return ")"; } }
+        public override string Code => ")";
 
-        public ParenthesesClosedOperation() { }
+        public ParenthesesClosedOperation()
+        {
+        }
 
         public override void Process()
         {
@@ -77,7 +75,7 @@ namespace Zaabee.ExpressionEngine.Operations
             while (operatorStack.Count > 0 && !(operatorStack.Peek() is ParenthesesOperation))
             {
                 BuildingContext.PushExpressions(operatorStack.Pop().Apply(")"));
-            };
+            }
 
             if (operatorStack.Count == 0)
                 throw new InvalidExpressionStringException("Redundant ')'.");

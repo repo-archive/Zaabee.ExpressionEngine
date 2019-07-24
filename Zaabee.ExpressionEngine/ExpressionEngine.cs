@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Zaabee.ExpressionEngine
 {
@@ -10,39 +9,44 @@ namespace Zaabee.ExpressionEngine
         //We can't add a delegate parametter restriction to ExpressionEngine<DelegateType>, and we should not
         //throw any exceptions in static constructor for type validation, so we just use the static factory method
         //to do that.
-        public static ExpressionEngine<DelegateType> Create<DelegateType>()
+        public static ExpressionEngine<TDelegateType> Create<TDelegateType>()
         {
-            Type delType = typeof(DelegateType);
+            var delType = typeof(TDelegateType);
 
             if (!delType.IsSubclassOf(typeof(Delegate)))
                 throw new ArgumentException("DelegateType should be delegate.");
 
-            return new ExpressionEngine<DelegateType>();
+            return new ExpressionEngine<TDelegateType>();
         }
     }
-    
-    public class ExpressionEngine<DelegateType> : ExpressionEngine
+
+    public class ExpressionEngine<TDelegateType> : ExpressionEngine
     {
-        static readonly Dictionary<string, ParameterExpression> parameters = new Dictionary<string, ParameterExpression>();
-        static readonly Type returnType;
+        static readonly Dictionary<string, ParameterExpression> Parameters =
+            new Dictionary<string, ParameterExpression>();
+
+        static readonly Type ReturnType;
         const string ExpressionEnd = "ExpressionEnd";
 
-        internal ExpressionEngine() { }
+        internal ExpressionEngine()
+        {
+        }
+
         static ExpressionEngine()
         {
-            Type delType = typeof(DelegateType);
+            var delType = typeof(TDelegateType);
 
-            MethodInfo invoke = delType.GetMethod("Invoke");
+            var invoke = delType.GetMethod("Invoke");
 
             var delParams = invoke.GetParameters();
 
             foreach (var p in delParams)
             {
-                ParameterExpression pe = Expression.Parameter(p.ParameterType, p.Name);
-                parameters.Add(p.Name, pe);
+                var pe = Expression.Parameter(p.ParameterType, p.Name);
+                Parameters.Add(p.Name, pe);
             }
 
-            returnType = invoke.ReturnType;
+            ReturnType = invoke.ReturnType;
         }
 
         public Expression BuildBody(string expression)
@@ -59,15 +63,15 @@ namespace Zaabee.ExpressionEngine
             }
         }
 
-        public Expression<DelegateType> BuildLambda(string expression)
+        public Expression<TDelegateType> BuildLambda(string expression)
         {
             var body = BuildBody(expression);
 
-            return Expression.Lambda<DelegateType>(body, parameters.Values);
+            return Expression.Lambda<TDelegateType>(body, Parameters.Values);
         }
-        public DelegateType BuildComplied(string expression)
-        {
 
+        public TDelegateType BuildComplied(string expression)
+        {
             return BuildLambda(expression).Compile();
         }
 
@@ -86,7 +90,7 @@ namespace Zaabee.ExpressionEngine
 
             while ((peek = reader.Peek()) > -1)
             {
-                var next = (char)peek;
+                var next = (char) peek;
 
                 if (char.IsDigit(next))
                 {
@@ -102,15 +106,13 @@ namespace Zaabee.ExpressionEngine
                     continue;
                 }
 
-                if(next == ' ')
+                if (next == ' ')
                 {
                     reader.Read();
                     continue;
                 }
 
-                Operation operation;
-
-                if (Operation.TryBuild(out operation))
+                if (Operation.TryBuild(out var operation))
                 {
                     operation.Process();
                     continue;
@@ -123,7 +125,7 @@ namespace Zaabee.ExpressionEngine
                     continue;
                 }
 
-                throw new InvalidExpressionStringException(string.Format("Encountered invalid character {0}", next));
+                throw new InvalidExpressionStringException($"Encountered invalid character {next}");
             }
 
             var operatorStack = workspace.OperationStack;
@@ -140,9 +142,9 @@ namespace Zaabee.ExpressionEngine
             if (expressionStack.Count > 1)
                 throw new InvalidExpressionStringException("Broken expression.");
 
-            Expression final = expressionStack.Pop().Expression;
+            var final = expressionStack.Pop().Expression;
 
-            if (final.Type != returnType)
+            if (final.Type != ReturnType)
                 throw new InvalidExpressionStringException("Expression returns wrong type of value.");
 
             return final;
@@ -150,7 +152,7 @@ namespace Zaabee.ExpressionEngine
 
         private Expression ReadOperand()
         {
-            ExpressionStringReader reader = BuildingContext.Current.ExpressionReader;
+            var reader = BuildingContext.Current.ExpressionReader;
 
             var operand = string.Empty;
 
@@ -158,7 +160,7 @@ namespace Zaabee.ExpressionEngine
 
             while ((peek = reader.Peek()) > -1)
             {
-                var next = (char)peek;
+                var next = (char) peek;
 
                 if (char.IsDigit(next) || next == '.')
                 {
@@ -176,7 +178,7 @@ namespace Zaabee.ExpressionEngine
 
         private Expression ReadParameterAndStringConst()
         {
-            ExpressionStringReader reader = BuildingContext.Current.ExpressionReader;
+            var reader = BuildingContext.Current.ExpressionReader;
 
             var parameter = string.Empty;
 
@@ -184,7 +186,7 @@ namespace Zaabee.ExpressionEngine
 
             while ((peek = reader.Peek()) > -1)
             {
-                var next = (char)peek;
+                var next = (char) peek;
 
                 if (char.IsLetter(next) || char.IsDigit(next))
                 {
@@ -197,48 +199,46 @@ namespace Zaabee.ExpressionEngine
                 }
             }
 
-            if (!parameters.ContainsKey(parameter))
+            if (!Parameters.ContainsKey(parameter))
             {
                 return Expression.Constant(parameter, Operation.StringType);
             }
 
-            return parameters[parameter];
+            return Parameters[parameter];
         }
 
         private Expression ReadSingleQuoteStringConst()
         {
-            ExpressionStringReader reader = BuildingContext.Current.ExpressionReader;
+            var reader = BuildingContext.Current.ExpressionReader;
 
             //read the first '
             reader.Read();
 
             int peek;
-            int peekAt = 0;
-            bool findOther = false;
+            var peekAt = 0;
+            var findOther = false;
 
             while ((peek = reader.PeekAt(peekAt)) > -1)
             {
-                var next = (char)peek;
+                var next = (char) peek;
 
                 if (next == '\'')
                 {
                     findOther = true;
                     break;
                 }
-                else
-                {
-                    peekAt++;
-                }
+
+                peekAt++;
             }
 
-            if(!findOther)
+            if (!findOther)
             {
                 throw new InvalidExpressionStringException("Lost the other single quote mark.");
             }
 
-            string result = string.Empty;
+            var result = string.Empty;
 
-            if(peekAt > 0)
+            if (peekAt > 0)
             {
                 result = reader.Read(peekAt);
             }

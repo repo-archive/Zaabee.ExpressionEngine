@@ -5,11 +5,13 @@ namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class EqualOperation : BinaryOperation
     {
-        public override string Code { get { return "=="; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => "==";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public EqualOperation() : base(Expression.Equal) { }
+        public EqualOperation() : base(Expression.Equal)
+        {
+        }
 
         private static Operation Build()
         {
@@ -20,24 +22,27 @@ namespace Zaabee.ExpressionEngine.Operations
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            Expression right = expressionStack.PopByFront(this);
-            Expression left = expressionStack.PopByBack(this);
+            var right = expressionStack.PopByFront(this);
+            var left = expressionStack.PopByBack(this);
 
             if (right.Type != left.Type)
             {
                 throw new InvalidExpressionStringException("Operands of equal operation should be the same type.");
             }
 
-            return new Expression[] { operation(left, right) };
+            return new[] {Operation(left, right)};
         }
     }
+
     internal sealed class NotEqualOperation : BinaryOperation
     {
-        public override string Code { get { return "!="; } }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
+        public override string Code => "!=";
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
 
-        public NotEqualOperation() : base(Expression.NotEqual) { }
+        public NotEqualOperation() : base(Expression.NotEqual)
+        {
+        }
 
         private static Operation Build()
         {
@@ -48,15 +53,15 @@ namespace Zaabee.ExpressionEngine.Operations
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            Expression right = expressionStack.PopByFront(this);
-            Expression left = expressionStack.PopByBack(this);
+            var right = expressionStack.PopByFront(this);
+            var left = expressionStack.PopByBack(this);
 
             if (right.Type != left.Type)
             {
                 throw new InvalidExpressionStringException("Operands of not equal operation should be the same type.");
             }
 
-            return new Expression[] { operation(left, right) };
+            return new[] {Operation(left, right)};
         }
     }
 }

@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class MaxOperation : FunctionOperation
     {
         const string code = "max";
-        public override string Code
-        {
-            get { return code; }
-        }
+        public override string Code => code;
 
-        public override string CloseCode
+        public override string CloseCode => ")";
+
+        public MaxOperation()
         {
-            get { return ")"; }
         }
-        public MaxOperation() { }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
@@ -26,23 +22,23 @@ namespace Zaabee.ExpressionEngine.Operations
 
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            if(expressionStack.Count > 0 && expressionStack.Peek().BackOperation != null)
+            if (expressionStack.Count > 0 && expressionStack.Peek().BackOperation != null)
             {
                 throw new InvalidExpressionStringException("Invalid max() function.");
             }
 
-            Expression second = expressionStack.PopByFront(this);
-            Expression first = expressionStack.PopByFront(this);
+            var second = expressionStack.PopByFront(this);
+            var first = expressionStack.PopByFront(this);
 
             if (expressionStack.Count > 0 && expressionStack.Peek().FrontOperation == this)
                 throw new InvalidExpressionStringException("Max operation have more than 2 operands.");
 
-            if (first.Type != Operation.NumericType || second.Type != Operation.NumericType)
+            if (first.Type != NumericType || second.Type != NumericType)
                 throw new InvalidExpressionStringException("Max operation is only available for numeric type.");
 
-            MethodInfo method = typeof(Math).GetMethod("Max", new Type[] { Operation.NumericType, Operation.NumericType });
+            var method = typeof(Math).GetMethod("Max", new Type[] {NumericType, NumericType});
 
-            return new Expression[] { Expression.Call(method, first, second) };
+            return new Expression[] {Expression.Call(method, first, second)};
         }
 
         private static Operation Build()

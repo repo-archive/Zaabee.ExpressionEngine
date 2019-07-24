@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Zaabee.ExpressionEngine.Operations
 {
@@ -9,47 +8,47 @@ namespace Zaabee.ExpressionEngine.Operations
     {
         const string code = "startwithin";
 
-        public override string Code
+        public override string Code => code;
+        public override int FrontPrecedence => 46;
+        public override int BackPrecedence => 46;
+
+
+        public StartWithInOperation() : base(null)
         {
-            get { return code; }
         }
-        public override int FrontPrecedence { get { return 46; } }
-        public override int BackPrecedence { get { return 46; } }
-
-
-        public StartWithInOperation() : base(null) { }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            Expression right = expressionStack.PopByFront(this);
+            var right = expressionStack.PopByFront(this);
 
-            Expression left = expressionStack.PopByBack(this);
+            var left = expressionStack.PopByBack(this);
 
             if (right.Type != typeof(List<string>))
             {
-                throw new InvalidExpressionStringException("The operand followed with startwithin operaion should be a string list.");
+                throw new InvalidExpressionStringException(
+                    "The operand followed with startWithin operation should be a string list.");
             }
 
-            if (left.Type != Operation.StringType)
+            if (left.Type != StringType)
             {
-                throw new InvalidExpressionStringException("Startwithin option is only available for string type.");
+                throw new InvalidExpressionStringException("StartWithin option is only available for string type.");
             }
 
-            ParameterExpression param = Expression.Parameter(Operation.StringType, "element");
+            var param = Expression.Parameter(StringType, "element");
 
-            MethodInfo startWith = Operation.StringType.GetMethod("StartsWith", new Type[] { typeof(string) });
+            var startWith = StringType.GetMethod("StartsWith", new[] {typeof(string)});
 
             var predicateExpressionBody = Expression.Call(left, startWith, param);
 
-            Expression<Predicate<string>> predicateExpression = LambdaExpression.Lambda<Predicate<string>>(predicateExpressionBody, param);
-            
-            Type liststringType = typeof(List<string>);
+            var predicateExpression = LambdaExpression.Lambda<Predicate<string>>(predicateExpressionBody, param);
 
-            MethodInfo exists = liststringType.GetMethod("Exists");
+            var listStringType = typeof(List<string>);
 
-            return new Expression[] { Expression.Call(right, exists, predicateExpression) };
+            var exists = listStringType.GetMethod("Exists");
+
+            return new Expression[] {Expression.Call(right, exists, predicateExpression)};
         }
 
         private static Operation Build()

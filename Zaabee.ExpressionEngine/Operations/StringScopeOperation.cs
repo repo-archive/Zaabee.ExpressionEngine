@@ -7,11 +7,13 @@ namespace Zaabee.ExpressionEngine.Operations
     internal sealed class StringScopeOperation : BinaryOperation
     {
         private static Regex regex = new Regex(@"^(?<pre>.*?)(?<num>[0-9]+)$");
-        public override string Code { get { return "~"; } }
-        public override int FrontPrecedence { get { return 80; } }
-        public override int BackPrecedence { get { return 80; } }
+        public override string Code => "~";
+        public override int FrontPrecedence => 80;
+        public override int BackPrecedence => 80;
 
-        public StringScopeOperation() : base(null) { }
+        public StringScopeOperation() : base(null)
+        {
+        }
 
         private static Operation Build()
         {
@@ -22,20 +24,23 @@ namespace Zaabee.ExpressionEngine.Operations
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            Expression right = expressionStack.PopByFront(this);
-            Expression left = expressionStack.PopByBack(this);
+            var right = expressionStack.PopByFront(this);
+            var left = expressionStack.PopByBack(this);
 
-            if (right.Type != Operation.StringType || right.NodeType != ExpressionType.Constant || left.Type != Operation.StringType || left.NodeType != ExpressionType.Constant)
+            if (right.Type != StringType || right.NodeType != ExpressionType.Constant || left.Type != StringType ||
+                left.NodeType != ExpressionType.Constant)
             {
-                throw new InvalidExpressionStringException("String scope operation(~) is only available between string const.");
+                throw new InvalidExpressionStringException(
+                    "String scope operation(~) is only available between string const.");
             }
 
-            string strRight = ((ConstantExpression)right).Value.ToString();
-            string strLeft = ((ConstantExpression)left).Value.ToString();
+            var strRight = ((ConstantExpression) right).Value.ToString();
+            var strLeft = ((ConstantExpression) left).Value.ToString();
 
-            if(strRight.Length != strLeft.Length)
+            if (strRight.Length != strLeft.Length)
             {
-                throw new InvalidExpressionStringException("The lenght of each of string scope operands should be same.");
+                throw new InvalidExpressionStringException(
+                    "The length of each of string scope operands should be same.");
             }
 
             var match = regex.Match(strRight);
@@ -45,41 +50,40 @@ namespace Zaabee.ExpressionEngine.Operations
                 throw new InvalidExpressionStringException("String constant of string scope should end with numeric.");
             }
 
-            string rightNumericString = match.Groups["num"].Value;
-            string rightPre = match.Groups["pre"].Value;
+            var rightNumericString = match.Groups["num"].Value;
+            var rightPre = match.Groups["pre"].Value;
 
             match = regex.Match(strLeft);
 
             if (!match.Success)
             {
                 throw new InvalidExpressionStringException("String constant of string scope should end with numeric.");
-            }            
+            }
 
-            string leftNumericString = match.Groups["num"].Value;
-            string leftPre = match.Groups["pre"].Value;
+            var leftNumericString = match.Groups["num"].Value;
+            var leftPre = match.Groups["pre"].Value;
 
             if (rightPre != leftPre)
             {
                 throw new InvalidExpressionStringException("The pre of each of string scope operands should be same.");
             }
 
-            int rightNumeric = int.Parse(rightNumericString);
-            int leftNumeric = int.Parse(leftNumericString);
+            var rightNumeric = int.Parse(rightNumericString);
+            var leftNumeric = int.Parse(leftNumericString);
 
-            if(rightNumeric < leftNumeric)
+            if (rightNumeric < leftNumeric)
             {
-                throw new InvalidExpressionStringException("Left should be less than or equal to right for string scope operation.");
+                throw new InvalidExpressionStringException(
+                    "Left should be less than or equal to right for string scope operation.");
             }
 
-            List<Expression> all = new List<Expression>();
+            var all = new List<Expression> {left};
 
-            all.Add(left);
-
-            for (int i = leftNumeric + 1; i < rightNumeric; i++ )
+            for (var i = leftNumeric + 1; i < rightNumeric; i++)
             {
-                string mid = i.ToString().PadLeft(rightNumericString.Length, '0');
+                var mid = i.ToString().PadLeft(rightNumericString.Length, '0');
                 mid = leftPre + mid;
-                all.Add(Expression.Constant(mid, Operation.StringType));
+                all.Add(Expression.Constant(mid, StringType));
             }
 
             all.Add(right);
@@ -87,5 +91,4 @@ namespace Zaabee.ExpressionEngine.Operations
             return all;
         }
     }
-
 }

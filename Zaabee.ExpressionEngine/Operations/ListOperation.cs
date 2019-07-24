@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class ListOperation : CloseOperation
     {
-        public override string Code
-        {
-            get { return "["; }
-        }
+        public override string Code => "[";
 
-        public override string CloseCode
-        {
-            get
-            {
-                return "]";
-            }
-        }
+        public override string CloseCode => "]";
 
         public ListOperation() { }
 
@@ -33,9 +23,9 @@ namespace Zaabee.ExpressionEngine.Operations
                 throw new InvalidExpressionStringException("Invalid list [].");
             }
 
-            Expression first = expressionStack.PopByFront(this);
+            var first = expressionStack.PopByFront(this);
 
-            List<Expression> list = new List<Expression>() { first };
+            var list = new List<Expression>() { first };
 
             while (expressionStack.Count > 0)
             {
@@ -53,15 +43,15 @@ namespace Zaabee.ExpressionEngine.Operations
 
             foreach (var expression in list)
             {
-                if (expression.Type != Operation.StringType || expression.NodeType != ExpressionType.Constant)
+                if (expression.Type != StringType || expression.NodeType != ExpressionType.Constant)
                 {
                     throw new InvalidExpressionStringException("List option is only available for string type.");
                 }
             }
 
-            Type liststringType = typeof(List<string>);
+            var listStringType = typeof(List<string>);
 
-            return new Expression[] { Expression.ListInit(Expression.New(liststringType), list) };
+            return new Expression[] { Expression.ListInit(Expression.New(listStringType), list) };
         }
 
         private static Operation Build()
@@ -84,7 +74,7 @@ namespace Zaabee.ExpressionEngine.Operations
     }
     internal sealed class ListClosedOperation : ControlOperation
     {
-        public override string Code { get { return "]"; } }
+        public override string Code => "]";
 
         public ListClosedOperation() { }
 
@@ -95,7 +85,7 @@ namespace Zaabee.ExpressionEngine.Operations
             while (operatorStack.Count > 0 && !(operatorStack.Peek() is ListOperation))
             {
                 BuildingContext.PushExpressions(operatorStack.Pop().Apply("]"));
-            };
+            }
 
             if (operatorStack.Count == 0)
                 throw new InvalidExpressionStringException("Redundant ']'.");
