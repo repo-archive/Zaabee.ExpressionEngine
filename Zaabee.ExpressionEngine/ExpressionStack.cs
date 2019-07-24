@@ -5,49 +5,72 @@ namespace Zaabee.ExpressionEngine
 {
     internal sealed class ExpressionStack
     {
-        private readonly Stack<ExpressionElement> _stack = new Stack<ExpressionElement>();
-        public void Clear() => _stack.Clear();
-        public int Count => _stack.Count;
-        public ExpressionElement Peek() => _stack.Peek();
-        public ExpressionElement Pop() => _stack.Pop();
+        Stack<ExpressionElement> stack = new Stack<ExpressionElement>();
+
+        public void Clear()
+        {
+            stack.Clear();
+        }
+
+        public int Count
+        {
+            get
+            {
+                return stack.Count;
+            }
+        }
+
+        public ExpressionElement Peek()
+        {
+            return stack.Peek();
+        }
+        public ExpressionElement Pop()
+        {
+            return stack.Pop();
+        }
+
 
         public void Push(Operation frontOperation, Expression expression, Operation backOperation = null)
         {
-            var element = new ExpressionElement
+            ExpressionElement element = new ExpressionElement
             {
                 FrontOperation = frontOperation,
                 Expression = expression,
-                BackOperation = backOperation
+                BackOperation = backOperation 
             };
 
-            _stack.Push(element);
+            stack.Push(element);
         }
 
         public Expression PopByFront(Operation frontOperation)
         {
-            if (_stack.Count <= 0)
-                throw new InvalidExpressionStringException(
-                    $"{frontOperation.GetType().Name} has no enough back operands.");
-            var expression = _stack.Peek();
+            if (stack.Count > 0)
+            {
+                var expression = stack.Peek();
 
-            if (expression.FrontOperation == frontOperation)
-                return _stack.Pop().Expression;
-            throw new InvalidExpressionStringException($"{frontOperation.GetType().Name} has no enough back operands.");
+                if (expression.FrontOperation == frontOperation)
+                {
+                    return stack.Pop().Expression;
+                }
+            }
+            throw new InvalidExpressionStringException(string.Format("{0} has no enough back operands.", frontOperation.GetType().Name));
         }
 
         public Expression PopByBack(Operation backOperation)
         {
-            if (_stack.Count <= 0)
-                throw new InvalidExpressionStringException(
-                    $"{backOperation.GetType().Name} has no enough front operands.");
-            var expression = _stack.Peek();
+            if (stack.Count > 0)
+            {
+                var expression = stack.Peek();
 
-            if (expression.BackOperation == backOperation)
-                return _stack.Pop().Expression;
+                if (expression.BackOperation == backOperation)
+                {
+                    return stack.Pop().Expression;
+                }
 
-            if (expression.FrontOperation == backOperation)
-                throw new InvalidExpressionStringException($"{backOperation.GetType().Name} has too back operands.");
-            throw new InvalidExpressionStringException($"{backOperation.GetType().Name} has no enough front operands.");
+                if(expression.FrontOperation == backOperation)
+                    throw new InvalidExpressionStringException(string.Format("{0} has too back operands.", backOperation.GetType().Name));
+            }
+            throw new InvalidExpressionStringException(string.Format("{0} has no enough front operands.", backOperation.GetType().Name));
         }
     }
 

@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class MaxOperation : FunctionOperation
     {
         const string code = "max";
-        public override string Code => code;
+        public override string Code
+        {
+            get { return code; }
+        }
 
-        public override string CloseCode => ")";
+        public override string CloseCode
+        {
+            get { return ")"; }
+        }
         public MaxOperation() { }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
@@ -24,8 +31,8 @@ namespace Zaabee.ExpressionEngine.Operations
                 throw new InvalidExpressionStringException("Invalid max() function.");
             }
 
-            var second = expressionStack.PopByFront(this);
-            var first = expressionStack.PopByFront(this);
+            Expression second = expressionStack.PopByFront(this);
+            Expression first = expressionStack.PopByFront(this);
 
             if (expressionStack.Count > 0 && expressionStack.Peek().FrontOperation == this)
                 throw new InvalidExpressionStringException("Max operation have more than 2 operands.");
@@ -33,7 +40,7 @@ namespace Zaabee.ExpressionEngine.Operations
             if (first.Type != Operation.NumericType || second.Type != Operation.NumericType)
                 throw new InvalidExpressionStringException("Max operation is only available for numeric type.");
 
-            var method = typeof(Math).GetMethod("Max", new Type[] { Operation.NumericType, Operation.NumericType });
+            MethodInfo method = typeof(Math).GetMethod("Max", new Type[] { Operation.NumericType, Operation.NumericType });
 
             return new Expression[] { Expression.Call(method, first, second) };
         }

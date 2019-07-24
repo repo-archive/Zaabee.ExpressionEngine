@@ -5,9 +5,9 @@ namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class AndAlsoOperation : BinaryOperation
     {
-        public override string Code => "and";
-        public override int FrontPrecedence => 40;
-        public override int BackPrecedence => 40;
+        public override string Code { get { return "and"; } }
+        public override int FrontPrecedence { get { return 40; } }
+        public override int BackPrecedence { get { return 40; } }
 
         public AndAlsoOperation() : base(Expression.AndAlso) { }
 
@@ -19,46 +19,62 @@ namespace Zaabee.ExpressionEngine.Operations
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
-            var right = expressionStack.PopByFront(this);
-            var left = expressionStack.PopByBack(this);
+            Expression right = expressionStack.PopByFront(this);
+            Expression left = expressionStack.PopByBack(this);
 
-            if (right.Type != Zaabee.ExpressionEngine.Operation.BooleanType || left.Type != Zaabee.ExpressionEngine.Operation.BooleanType)
+            if (right.Type != Operation.BooleanType || left.Type != Operation.BooleanType)
+            {
                 throw new InvalidExpressionStringException("And operation is only available for boolean operand.");
+            }
 
-            return new [] { Operation(left, right) };
+            return new Expression[] { operation(left, right) };
         }
     }
     internal sealed class OrElseOperation : BinaryOperation
     {
-        public override string Code => "or";
-        public override int FrontPrecedence => 40;
-        public override int BackPrecedence => 40;
+        public override string Code { get { return "or"; } }
+        public override int FrontPrecedence { get { return 40; } }
+        public override int BackPrecedence { get { return 40; } }
 
         public OrElseOperation() : base(Expression.OrElse) { }
 
-        private static Operation Build() => OperationBuilder.LetterBuild<OrElseOperation>("or");
+        private static Operation Build()
+        {
+            return OperationBuilder.LetterBuild<OrElseOperation>("or");
+        }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            var right = expressionStack.PopByFront(this);
-            var left = expressionStack.PopByBack(this);
+            Expression right = expressionStack.PopByFront(this);
+            Expression left = expressionStack.PopByBack(this);
 
-            if (right.Type != Zaabee.ExpressionEngine.Operation.BooleanType || left.Type != Zaabee.ExpressionEngine.Operation.BooleanType)
+            if (right.Type != Operation.BooleanType || left.Type != Operation.BooleanType)
+            {
                 throw new InvalidExpressionStringException("Or operation is only available for boolean operand.");
+            }
 
-            return new [] { Operation(left, right) };
+            return new Expression[] { operation(left, right) };
         }
     }
 
     internal sealed class NotOperation : BackUnaryOperation
     {
-        public override string Code => "not";
+        public override string Code
+        {
+            get { return "not"; }
+        }
 
-        public override int FrontPrecedence => 42;
+        public override int FrontPrecedence
+        {
+            get { return 42; }
+        }
 
-        public override int BackPrecedence => 42;
+        public override int BackPrecedence
+        {
+            get { return 42; }
+        }
 
         public NotOperation() : base(Expression.Not) { }
 
@@ -66,12 +82,12 @@ namespace Zaabee.ExpressionEngine.Operations
         {
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            var operand = expressionStack.PopByFront(this);
+            Expression operand = expressionStack.PopByFront(this);
 
-            if (operand.Type != BooleanType)
+            if (operand.Type != Operation.BooleanType)
                 throw new InvalidExpressionStringException("Not operation is only available for boolean type.");
 
-            return new [] { Operation(operand) };
+            return new Expression[] { operation(operand) };
         }
 
         private static Operation Build()

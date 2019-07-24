@@ -2,26 +2,37 @@
 {
     internal sealed class CommaOperation : ControlOperation
     {
-        public override string Code => ",";
+        public override string Code { get { return ","; } }
+
+        public CommaOperation() { }
 
         public override void Process()
         {
             var operatorStack = BuildingContext.Current.OperationStack;
 
             while (operatorStack.Count > 0 && !(operatorStack.Peek() is CloseOperation))
+            {
                 BuildingContext.PushExpressions(operatorStack.Pop().Apply(","));
+            };
 
             if (operatorStack.Count == 0)
-                throw new InvalidExpressionStringException("Comma operation(,) is only available in closed operation.");
+                throw new InvalidExpressionStringException("Comma operation(,) is only available in closed opration.");
 
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
-            if (expressionStack.Count > 0 && expressionStack.Peek().BackOperation == null)
+            if(expressionStack.Count > 0 && expressionStack.Peek().BackOperation == null)
+            {
                 expressionStack.Peek().BackOperation = this;
+            }
             else
+            {
                 throw new InvalidExpressionStringException("Redundant ','.");
+            }
         }
 
-        private static Operation Build() => OperationBuilder.FixedBuild<CommaOperation>(",");
+        private static Operation Build()
+        {
+            return OperationBuilder.FixedBuild<CommaOperation>(",");
+        }
     }
 }

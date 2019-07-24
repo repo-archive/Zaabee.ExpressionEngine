@@ -8,33 +8,38 @@ namespace Zaabee.ExpressionEngine
 {
     internal sealed class BuildingContext
     {
-        [ThreadStatic] private static Stack<WorkSpace> _workSpaceStack;
+        [ThreadStatic]
+        private static Stack<WorkSpace> WorkSacpeStack;
 
         public static void BeginBuilding(string expression)
         {
-            if (_workSpaceStack == null)
-                _workSpaceStack = new Stack<WorkSpace>();
+            if (WorkSacpeStack == null)
+                WorkSacpeStack = new Stack<WorkSpace>();
 
-            _workSpaceStack.Push(new WorkSpace(expression, new ExpressionStack(),
-                new ExpressionStringReader(expression), new Stack<Operation>()));
+            WorkSacpeStack.Push(new WorkSpace(expression, new ExpressionStack(), new ExpressionStringReader(expression), new Stack<Operation>()));
         }
-
         public static void EndBuilding()
         {
-            if (_workSpaceStack.Count > 0)
-                _workSpaceStack.Pop();
+            if (WorkSacpeStack.Count > 0)
+                WorkSacpeStack.Pop();
         }
-
         public static List<string> ExpressionList
         {
-            get { return _workSpaceStack.Select(wss => wss.Expression).ToList(); }
+            get
+            {
+                return WorkSacpeStack.Select(wss => wss.Expression).ToList();
+            }
         }
-
-        public static WorkSpace Current => _workSpaceStack.Peek();
-
+        public static WorkSpace Current
+        {
+            get
+            {
+                return WorkSacpeStack.Peek();
+            }
+        }
         public static void PushExpressions(IEnumerable<Expression> expressions)
         {
-            var workspace = Current;
+            var workspace = BuildingContext.Current;
 
             if (workspace.ExpressionStack.Count > 0)
             {
@@ -44,8 +49,8 @@ namespace Zaabee.ExpressionEngine
                     throw new InvalidExpressionStringException("Broken expression.");
             }
 
-            var op = workspace.OperationStack.Count > 0 ? workspace.OperationStack.Peek() : null;
-
+            Operation op = workspace.OperationStack.Count > 0 ? workspace.OperationStack.Peek() : null;
+           
             foreach (var expression in expressions)
             {
                 /*** HACK ***/
@@ -54,16 +59,15 @@ namespace Zaabee.ExpressionEngine
                 workspace.ExpressionStack.Push(op, expression, new CommaOperation());
             }
 
-            if (expressions.Any())
+            if(expressions.Count() > 0)
             {
                 //we should handle the last redundant back operation.
                 workspace.ExpressionStack.Peek().BackOperation = null;
             }
         }
-
         public static void PushExpression(Expression expression)
         {
-            var workspace = Current;
+            var workspace = BuildingContext.Current;
 
             if (workspace.ExpressionStack.Count > 0)
             {
@@ -73,25 +77,27 @@ namespace Zaabee.ExpressionEngine
                     throw new InvalidExpressionStringException("Broken expression.");
             }
 
-            var op = workspace.OperationStack.Count > 0 ? workspace.OperationStack.Peek() : null;
+            Operation op = workspace.OperationStack.Count > 0 ? workspace.OperationStack.Peek() : null;
 
             workspace.ExpressionStack.Push(op, expression);
         }
-
         public static void PushOperation(Operation operation)
         {
             var workspace = BuildingContext.Current;
 
             workspace.OperationStack.Push(operation);
 
-            if (workspace.ExpressionStack.Count <= 0) return;
-            var expressionElement = workspace.ExpressionStack.Peek();
+            if (workspace.ExpressionStack.Count > 0)
+            {
+                var expressionElement = workspace.ExpressionStack.Peek();
 
-            if (expressionElement.BackOperation == null)
-                expressionElement.BackOperation = operation;
+                if(expressionElement.BackOperation == null)
+                {
+                    expressionElement.BackOperation = operation;
+                }
+            }
         }
     }
-
     internal sealed class WorkSpace
     {
         public string Expression { get; private set; }
@@ -99,8 +105,7 @@ namespace Zaabee.ExpressionEngine
         public ExpressionStringReader ExpressionReader { get; private set; }
         public Stack<Operation> OperationStack { get; private set; }
 
-        public WorkSpace(string expression, ExpressionStack expressionStack, ExpressionStringReader expressionReader,
-            Stack<Operation> operationStack)
+        public WorkSpace(string expression, ExpressionStack expressionStack, ExpressionStringReader expressionReader, Stack<Operation> operationStack)
         {
             Expression = expression;
             ExpressionStack = expressionStack;

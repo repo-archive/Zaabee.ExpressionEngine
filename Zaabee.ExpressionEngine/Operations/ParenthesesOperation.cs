@@ -5,9 +5,20 @@ namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class ParenthesesOperation : CloseOperation
     {
-        public override string Code => "(";
+        public override string Code
+        {
+            get { return "("; }
+        }
 
-        public override string CloseCode => ")";
+        public override string CloseCode
+        {
+            get
+            {
+                return ")";
+            }
+        }
+
+        public ParenthesesOperation() { }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
@@ -17,18 +28,23 @@ namespace Zaabee.ExpressionEngine.Operations
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
             if (expressionStack.Count > 0 && expressionStack.Peek().BackOperation != null)
+            {
                 throw new InvalidExpressionStringException("Invalid () body.");
+            }
             var result = expressionStack.PopByFront(this);
 
-            if (expressionStack.Count <= 0) return new[] {result};
-            var opPair = expressionStack.Peek();
+            if (expressionStack.Count > 0)
+            {
+                var opPair = expressionStack.Peek();
 
-            if (opPair.FrontOperation == this)
-                throw new InvalidExpressionStringException("Parentheses operation has more than one operand.");
+                if (opPair.FrontOperation == this)
+                {
+                    throw new InvalidExpressionStringException("Parentheses operation has more than one operand.");
+                }
+            }
 
-            return new[] {result};
+            return new Expression[] { result };
         }
-
         private static Operation Build()
         {
             var reader = BuildingContext.Current.ExpressionReader;
@@ -39,26 +55,29 @@ namespace Zaabee.ExpressionEngine.Operations
                 return new ParenthesesOperation();
             }
 
-            if (reader.Peek() == ')')
+            if(reader.Peek() == ')')
             {
                 reader.Read();
                 return new ParenthesesClosedOperation();
             }
-
             return null;
         }
     }
 
     internal sealed class ParenthesesClosedOperation : ControlOperation
     {
-        public override string Code => ")";
+        public override string Code { get { return ")"; } }
+
+        public ParenthesesClosedOperation() { }
 
         public override void Process()
         {
             var operatorStack = BuildingContext.Current.OperationStack;
 
             while (operatorStack.Count > 0 && !(operatorStack.Peek() is ParenthesesOperation))
+            {
                 BuildingContext.PushExpressions(operatorStack.Pop().Apply(")"));
+            };
 
             if (operatorStack.Count == 0)
                 throw new InvalidExpressionStringException("Redundant ')'.");

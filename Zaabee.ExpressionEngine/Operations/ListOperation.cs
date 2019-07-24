@@ -1,13 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Zaabee.ExpressionEngine.Operations
 {
     internal sealed class ListOperation : CloseOperation
     {
-        public override string Code => "[";
+        public override string Code
+        {
+            get { return "["; }
+        }
 
-        public override string CloseCode => "]";
+        public override string CloseCode
+        {
+            get
+            {
+                return "]";
+            }
+        }
+
+        public ListOperation() { }
 
         public override IEnumerable<Expression> Apply(string triggerStartOperation)
         {
@@ -17,29 +29,39 @@ namespace Zaabee.ExpressionEngine.Operations
             var expressionStack = BuildingContext.Current.ExpressionStack;
 
             if (expressionStack.Count > 0 && expressionStack.Peek().BackOperation != null)
+            {
                 throw new InvalidExpressionStringException("Invalid list [].");
+            }
 
-            var first = expressionStack.PopByFront(this);
+            Expression first = expressionStack.PopByFront(this);
 
-            var list = new List<Expression>() {first};
+            List<Expression> list = new List<Expression>() { first };
 
             while (expressionStack.Count > 0)
             {
                 var opPair = expressionStack.Peek();
 
                 if (opPair.FrontOperation == this)
+                {
                     list.Add(expressionStack.PopByFront(this));
+                }
                 else
+                {
                     break;
+                }
             }
 
             foreach (var expression in list)
+            {
                 if (expression.Type != Operation.StringType || expression.NodeType != ExpressionType.Constant)
+                {
                     throw new InvalidExpressionStringException("List option is only available for string type.");
+                }
+            }
 
-            var listStringType = typeof(List<string>);
+            Type liststringType = typeof(List<string>);
 
-            return new Expression[] {Expression.ListInit(Expression.New(listStringType), list)};
+            return new Expression[] { Expression.ListInit(Expression.New(liststringType), list) };
         }
 
         private static Operation Build()
@@ -57,18 +79,14 @@ namespace Zaabee.ExpressionEngine.Operations
                 reader.Read();
                 return new ListClosedOperation();
             }
-
             return null;
         }
     }
-
     internal sealed class ListClosedOperation : ControlOperation
     {
-        public override string Code => "]";
+        public override string Code { get { return "]"; } }
 
-        public ListClosedOperation()
-        {
-        }
+        public ListClosedOperation() { }
 
         public override void Process()
         {
@@ -77,12 +95,12 @@ namespace Zaabee.ExpressionEngine.Operations
             while (operatorStack.Count > 0 && !(operatorStack.Peek() is ListOperation))
             {
                 BuildingContext.PushExpressions(operatorStack.Pop().Apply("]"));
+            };
 
-                if (operatorStack.Count == 0)
-                    throw new InvalidExpressionStringException("Redundant ']'.");
-                //apply [ operation
-                BuildingContext.PushExpressions(operatorStack.Pop().Apply("]"));
-            }
+            if (operatorStack.Count == 0)
+                throw new InvalidExpressionStringException("Redundant ']'.");
+            //apply [ operation
+            BuildingContext.PushExpressions(operatorStack.Pop().Apply("]"));
         }
     }
 }
