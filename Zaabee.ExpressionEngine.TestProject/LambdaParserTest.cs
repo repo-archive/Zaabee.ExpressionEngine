@@ -99,8 +99,8 @@ namespace Zaabee.ExpressionEngine.TestProject
 			Assert.Equal(2M, ((IDictionary) arr.GetValue(0))["test"]);
 			Assert.Equal(1M, ((Array) arr.GetValue(1)).GetValue(0));
 
-			Assert.Equal("str", lambdaParser.Eval(" testObj.GetDelegNoParam()() ", varContext));
-			Assert.Equal("zzz", lambdaParser.Eval(" testObj.GetDelegOneParam()(\"zzz\") ", varContext));
+			Assert.Equal("str", lambdaParser.Eval(" testObj.GetDelegateNoParam()() ", varContext));
+			Assert.Equal("zzz", lambdaParser.Eval(" testObj.GetDelegateOneParam()(\"zzz\") ", varContext));
 
 			Assert.Equal(false,
 				lambdaParser.Eval("(testObj.FldTrue and false) || (testObj.FldTrue && false)", varContext));
@@ -166,15 +166,18 @@ namespace Zaabee.ExpressionEngine.TestProject
 
 			var varContext = new Dictionary<string, object> {["a"] = 55, ["b"] = 2};
 
+			var result = 0M;
+			var iterations = 1000000;
 			var sw = new Stopwatch();
 			sw.Start();
-			for (var i = 0; i < 10000; i++)
+			for (var i = 0; i < iterations; i++)
 			{
-				Assert.Equal(105M, lambdaParser.Eval("(a*2 + 100)/b", varContext));
+				result += (decimal) lambdaParser.Eval("(a*2 + 100)/b", varContext);
 			}
 
 			sw.Stop();
-			Console.WriteLine("10000 iterations: {0}", sw.Elapsed);
+			var str = $"{iterations} iterations: {sw.Elapsed}";
+			Assert.Equal(105M * iterations, result);
 		}
 
 		public class TestClass
@@ -205,7 +208,7 @@ namespace Zaabee.ExpressionEngine.TestProject
 
 			public Func<string, string> GetDelegateOneParam()
 			{
-				return (s) => s;
+				return s => s;
 			}
 
 			public Func<string> GetDelegateNoParam()
